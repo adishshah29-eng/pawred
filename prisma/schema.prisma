@@ -1,0 +1,327 @@
+// Pawred data model. Everything lives in PostgreSQL on Supabase.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ---------- Enums ----------
+
+enum Sex {
+  MALE
+  FEMALE
+}
+
+enum VerificationStatus {
+  NONE
+  PENDING
+  VERIFIED
+  REJECTED
+}
+
+enum DocType {
+  VACCINATION
+  HIP_ELBOW
+  GENETIC
+  PEDIGREE
+}
+
+enum DocStatus {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum LikeTarget {
+  PHOTO
+  PROMPT
+}
+
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+enum ActivityAction {
+  SIGN_UP
+  SIGN_IN
+  DOG_CREATED
+  DOG_UPDATED
+  LIKE_SENT
+  PASS
+  MATCH_CREATED
+  UNMATCH
+  REPORT_FILED
+  DOC_UPLOADED
+  DOC_REVIEWED
+  USER_BANNED
+  USER_UNBANNED
+  ROLE_CHANGED
+  REPORT_HANDLED
+}
+
+enum NotificationType {
+  NEW_LIKE
+  NEW_MATCH
+  NEW_MESSAGE
+  DOC_APPROVED
+  DOC_REJECTED
+}
+
+// ---------- Better Auth tables (Phase 4) ----------
+// Field names follow Better Auth's core schema plus its admin plugin (role, banned...).
+
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  role          String    @default("user") // "user" | "admin" (Better Auth admin plugin)
+  banned        Boolean?  @default(false)
+  banReason     String?
+  banExpires    DateTime?
+  city          String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  sessions      Session[]
+  accounts      Account[]
+  dogs          Dog[]
+  reportsFiled  Report[]       @relation("Reporter")
+  docsReviewed  HealthDoc[]    @relation("Reviewer")
+  activity      ActivityLog[]
+  notifications Notification[]
+
+  @@map("user")
+}
+
+model Session {
+  id             String   @id
+  expiresAt      DateTime
+  token          String   @unique
+  ipAddress      String?
+  userAgent      String?
+  impersonatedBy String?
+  userId         String
+  user           User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  @@index([userId])
+  @@map("session")
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  @@index([userId])
+  @@map("account")
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([identifier])
+  @@map("verification")
+}
+
+// ---------- Dogs ----------
+
+model Dog {
+  id                 String             @id @default(cuid())
+  ownerId            String
+  owner              User               @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  name               String
+  breed              String // breed slug, e.g. "golden-retriever"
+  sex                Sex
+  dateOfBirth        DateTime
+  weightKg           Float?
+  city               String
+  bio                String?
+  openToMixed        Boolean            @default(false)
+  vaccinated         Boolean            @default(false)
+  verificationStatus VerificationStatus @default(NONE)
+  isActive           Boolean            @default(true) // owner can pause the profile
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  photos        DogPhoto[]
+  prompts       PromptAnswer[]
+  healthDocs    HealthDoc[]
+  likesSent     Like[]         @relation("LikeFrom")
+  likesReceived Like[]         @relation("LikeTo")
+  passesSent    Pass[]         @relation("PassFrom")
+  passesGot     Pass[]         @relation("PassTo")
+  matchesAsA    Match[]        @relation("MatchA")
+  matchesAsB    Match[]        @relation("MatchB")
+  reports       Report[]
+  messagesSent  Message[]
+
+  // Discover filters on these together.
+  @@index([breed, sex, isActive])
+  @@index([ownerId])
+}
+
+model DogPhoto {
+  id        String   @id @default(cuid())
+  dogId     String
+  dog       Dog      @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  url       String
+  alt       String?
+  order     Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([dogId, order])
+}
+
+model PromptAnswer {
+  id     String @id @default(cuid())
+  dogId  String
+  dog    Dog    @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  prompt String
+  answer String
+  order  Int    @default(0)
+
+  @@index([dogId, order])
+}
+
+model HealthDoc {
+  id           String    @id @default(cuid())
+  dogId        String
+  dog          Dog       @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  type         DocType
+  fileUrl      String
+  note         String?
+  status       DocStatus @default(PENDING)
+  reviewedById String?
+  reviewedBy   User?     @relation("Reviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewedAt   DateTime?
+  createdAt    DateTime  @default(now())
+
+  @@index([status])
+  @@index([dogId])
+}
+
+// ---------- Likes, passes, matches ----------
+
+model Like {
+  id         String     @id @default(cuid())
+  fromDogId  String
+  toDogId    String
+  fromDog    Dog        @relation("LikeFrom", fields: [fromDogId], references: [id], onDelete: Cascade)
+  toDog      Dog        @relation("LikeTo", fields: [toDogId], references: [id], onDelete: Cascade)
+  targetType LikeTarget
+  targetId   String // DogPhoto.id or PromptAnswer.id that was liked
+  comment    String?
+  createdAt  DateTime   @default(now())
+
+  @@unique([fromDogId, toDogId]) // one like per pair
+  @@index([toDogId, createdAt]) // "Likes you" list
+}
+
+model Pass {
+  fromDogId String
+  toDogId   String
+  fromDog   Dog      @relation("PassFrom", fields: [fromDogId], references: [id], onDelete: Cascade)
+  toDog     Dog      @relation("PassTo", fields: [toDogId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+
+  @@id([fromDogId, toDogId])
+}
+
+// dogAId is always the smaller id of the pair, so each pair has one row.
+model Match {
+  id          String    @id @default(cuid())
+  dogAId      String
+  dogBId      String
+  dogA        Dog       @relation("MatchA", fields: [dogAId], references: [id], onDelete: Cascade)
+  dogB        Dog       @relation("MatchB", fields: [dogBId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  unmatchedAt DateTime?
+  messages    Message[]
+
+  @@unique([dogAId, dogBId])
+  @@index([dogBId])
+}
+
+// ---------- Chat ----------
+
+model Message {
+  id          String    @id @default(cuid())
+  matchId     String
+  match       Match     @relation(fields: [matchId], references: [id], onDelete: Cascade)
+  senderDogId String
+  senderDog   Dog       @relation(fields: [senderDogId], references: [id], onDelete: Cascade)
+  text        String    @db.VarChar(1000)
+  readAt      DateTime?
+  createdAt   DateTime  @default(now())
+
+  // Chat loads one match's messages in time order.
+  @@index([matchId, createdAt])
+}
+
+// ---------- Activity and notifications ----------
+
+model ActivityLog {
+  id        String         @id @default(cuid())
+  userId    String
+  user      User           @relation(fields: [userId], references: [id], onDelete: Cascade)
+  action    ActivityAction
+  meta      Json           @default("{}") // free-form details, e.g. { dogId, matchId }
+  createdAt DateTime       @default(now())
+
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([action, createdAt(sort: Desc)])
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type      NotificationType
+  payload   Json             @default("{}") // e.g. { dogId, matchId, fromDogName }
+  seen      Boolean          @default(false)
+  createdAt DateTime         @default(now())
+
+  @@index([userId, seen, createdAt(sort: Desc)])
+}
+
+// ---------- Moderation ----------
+
+model Report {
+  id         String       @id @default(cuid())
+  reporterId String
+  reporter   User         @relation("Reporter", fields: [reporterId], references: [id], onDelete: Cascade)
+  dogId      String
+  dog        Dog          @relation(fields: [dogId], references: [id], onDelete: Cascade)
+  reason     String
+  status     ReportStatus @default(OPEN)
+  createdAt  DateTime     @default(now())
+  resolvedAt DateTime?
+
+  @@index([status, createdAt])
+}

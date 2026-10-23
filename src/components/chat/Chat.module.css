@@ -1,0 +1,53 @@
+/* CSS Module (syllabus Unit 2): chat bubbles. */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.row {
+  display: flex;
+}
+
+.mine {
+  justify-content: flex-end;
+}
+
+.bubble {
+  max-width: min(78%, 460px);
+  padding: 10px 16px;
+  border-radius: 22px;
+  line-height: 1.45;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.theirs .bubble {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-bottom-left-radius: 8px;
+}
+
+.mine .bubble {
+  background: var(--felt);
+  color: var(--on-felt);
+  border-bottom-right-radius: 8px;
+}
+
+.sending {
+  opacity: 0.6;
+}
+
+.meta {
+  margin: 2px 6px 8px;
+  font-size: 12px;
+  color: var(--ink-soft);
+  font-variant-numeric: tabular-nums;
+}
+
+.dayDivider {
+  margin: 18px 0 10px;
+  text-align: center;
+  font-size: 13px;
+  color: var(--ink-soft);
+}

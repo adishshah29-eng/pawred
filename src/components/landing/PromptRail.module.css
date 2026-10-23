@@ -1,0 +1,23 @@
+/* CSS Module (syllabus Unit 2): horizontal scroll-snap rail for sample profiles. */
+.rail {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: min(78vw, 340px);
+  gap: 16px;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  overscroll-behavior-x: contain;
+  padding: 4px max(20px, calc((100vw - 1240px) / 2 + 32px)) 20px;
+  scroll-padding-inline: max(20px, calc((100vw - 1240px) / 2 + 32px));
+  scrollbar-width: thin;
+}
+
+.item {
+  scroll-snap-align: start;
+}
+
+@media (min-width: 640px) {
+  .rail {
+    gap: 20px;
+  }
+}

@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000" role="img" aria-label="Pedigree Certificate (sample)">
+  <rect width="800" height="1000" fill="#fffcf6"/>
+  <rect x="24" y="24" width="752" height="952" rx="6" fill="none" stroke="#d9cdb9" stroke-width="3"/>
+  <rect x="24" y="24" width="752" height="120" fill="#16352a"/>
+  <text x="60" y="98" font-family="Georgia, serif" font-size="40" fill="#f4ede1">Pedigree Certificate</text>
+  <text x="60" y="190" font-family="Arial, sans-serif" font-size="22" fill="#5b5248">Pawred demo · sample record</text>
+  <g font-family="Arial, sans-serif" font-size="26" fill="#1e1a16">
+    <text x="60" y="290">Registered with ... Kennel Club</text><line x1="60" y1="306" x2="740" y2="306" stroke="#d9cdb9"/>
+    <text x="60" y="370">Sire ............ Champion Ranger</text><line x1="60" y1="386" x2="740" y2="386" stroke="#d9cdb9"/>
+    <text x="60" y="450">Dam ............. Honey of Pune</text><line x1="60" y1="466" x2="740" y2="466" stroke="#d9cdb9"/>
+    <text x="60" y="530">Generations ..... 4</text><line x1="60" y1="546" x2="740" y2="546" stroke="#d9cdb9"/>
+  </g>
+  <circle cx="620" cy="760" r="78" fill="none" stroke="#c9831f" stroke-width="6"/>
+  <text x="620" y="768" text-anchor="middle" font-family="Arial, sans-serif" font-size="22" font-weight="700" fill="#c9831f">CHECKED</text>
+  <text x="60" y="800" font-family="Arial, sans-serif" font-size="22" fill="#5b5248">Veterinarian signature</text>
+  <line x1="60" y1="780" x2="360" y2="780" stroke="#1e1a16"/>
+  <text x="400" y="940" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="700" fill="#b3412e">SAMPLE DOCUMENT FOR DEMO. NOT A REAL RECORD.</text>
+</svg>

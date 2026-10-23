@@ -1,0 +1,109 @@
+@import "tailwindcss";
+
+/* Pawred design tokens: oat paper, evergreen show-ring felt, marigold rosette. */
+:root {
+  --paper: #f4ede1;
+  --paper-deep: #ebe1d0;
+  --card: #fffcf6;
+  --ink: #1e1a16;
+  --ink-soft: #5b5248;
+  --line: #d9cdb9;
+  --felt: #16352a;
+  --felt-raised: #1f4637;
+  --on-felt: #f4ede1;
+  --on-felt-soft: #b8cbbd;
+  --marigold: #e8a13a;
+  --marigold-deep: #c9831f;
+  --verified: #3c6a48;
+  --danger: #b3412e;
+}
+
+@theme inline {
+  --color-paper: var(--paper);
+  --color-paper-deep: var(--paper-deep);
+  --color-card: var(--card);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-line: var(--line);
+  --color-felt: var(--felt);
+  --color-felt-raised: var(--felt-raised);
+  --color-on-felt: var(--on-felt);
+  --color-on-felt-soft: var(--on-felt-soft);
+  --color-marigold: var(--marigold);
+  --color-marigold-deep: var(--marigold-deep);
+  --color-verified: var(--verified);
+  --color-danger: var(--danger);
+  --font-display: var(--font-gloock);
+  --font-sans: var(--font-figtree);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-figtree), system-ui, sans-serif;
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  text-wrap: balance;
+}
+
+p {
+  text-wrap: pretty;
+}
+
+::selection {
+  background: var(--marigold);
+  color: var(--ink);
+}
+
+input,
+textarea {
+  caret-color: var(--marigold-deep);
+}
+
+:focus-visible {
+  outline: 2px solid var(--marigold-deep);
+  outline-offset: 3px;
+  border-radius: 6px;
+}
+
+a {
+  text-underline-offset: 0.2em;
+  text-decoration-thickness: 1px;
+}
+
+* {
+  scrollbar-color: var(--line) transparent;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+/* Short entrance for the toast. Skipped when the person prefers less motion. */
+@media (prefers-reduced-motion: no-preference) {
+  .toast-in {
+    animation: toast-in 0.32s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  @keyframes toast-in {
+    from {
+      opacity: 0;
+      transform: translateY(12px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+}
